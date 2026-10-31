@@ -9,8 +9,14 @@ const (
 )
 
 func FromContext(ctx interface{}) Logger {
-	if logger, ok := ctx.(Logger); ok {
-		return logger
+	switch v := ctx.(type) {
+	case context.Context:
+		if logger, ok := v.Value(CtxKey).(Logger); ok && logger != nil {
+			return logger
+		}
+	// kept for callers that passed a Logger directly before ctx lookup worked
+	case Logger:
+		return v
 	}
 	return DefaultLogger()
 }
