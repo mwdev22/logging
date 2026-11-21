@@ -5,17 +5,26 @@ import (
 	"testing"
 )
 
-func Test_fromcontext_withlogger(t *testing.T) {
-	logger := DefaultLogger()
+func Test_fromcontext(t *testing.T) {
+	stored := NewJsonLogger()
 
-	result := FromContext(logger)
-
-	if result == nil {
-		t.Fatal("FromContext returned nil")
+	tests := []struct {
+		name string
+		ctx  interface{}
+		want Logger
+	}{
+		{name: "logger stored via ToContext", ctx: ToContext(context.Background(), stored), want: stored},
+		{name: "logger passed directly", ctx: stored, want: stored},
+		{name: "nil logger stored falls back to default", ctx: ToContext(context.Background(), nil), want: DefaultLogger()},
 	}
 
-	if result != logger {
-		t.Error("FromContext did not return the expected logger")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := FromContext(tt.ctx)
+			if got != tt.want {
+				t.Errorf("FromContext() = %T, want %T", got, tt.want)
+			}
+		})
 	}
 }
 

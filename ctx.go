@@ -9,8 +9,13 @@ const (
 )
 
 func FromContext(ctx interface{}) Logger {
-	if logger, ok := ctx.(Logger); ok {
-		return logger
+	switch v := ctx.(type) {
+	case context.Context:
+		if logger, ok := v.Value(CtxKey).(Logger); ok && logger != nil {
+			return logger
+		}
+	case Logger:
+		return v
 	}
 	return DefaultLogger()
 }
